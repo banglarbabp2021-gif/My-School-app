@@ -19,28 +19,33 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Fix Incompatible SDK and Plugin Syntax
+      - name: Fix SDK and Plugin Configuration
         run: |
           # ভুল প্লাগইন ভার্সন সংশোধন
           grep -rl '9\.1\.1' . | xargs sed -i 's/9\.1\.1/8.7.3/g' || true
           
-          # অপ্রচলিত compileSdk সিনট্যাক্স সংশোধন
-          find . -name "build.gradle.kts" -exec sed -i -E 's/compileSdk\(version = release\([0-9]+\)(.*)\)/compileSdk = 35/g' {} +
-          find . -name "build.gradle.kts" -exec sed -i -E 's/targetSdk\(version = release\([0-9]+\)(.*)\)/targetSdk = 35/g' {} +
+          # সঠিক compileSdk ও targetSdk নিশ্চিত করা
+          find . -name "build.gradle.kts" -exec sed -i -E 's/compileSdk\(.*\)/compileSdk = 35/g' {} +
+          find . -name "build.gradle.kts" -exec sed -i -E 's/targetSdk\(.*\)/targetSdk = 35/g' {} +
           find . -name "build.gradle.kts" -exec sed -i '/minorApiLevel/d' {} +
           
-          # ক্যাশ ডিক্লেয়ারেশন সরানো
+          # ক্যাশ বন্ধ রাখা
           echo "org.gradle.configuration-cache=false" >> gradle.properties
 
-      - name: Setup Gradle 8.9
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.9'
-          cache-disabled: true
-
-      - name: Generate Wrapper
+      - name: Setup Gradle 8.9 Wrapper
         run: |
-          gradle wrapper --gradle-version 8.9
+          mkdir -p gradle/wrapper
+          curl -sLo gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.9.0/gradle/wrapper/gradle-wrapper.jar
+          cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-bin.zip
+          networkTimeout=10000
+          validateDistributionUrl=true
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          EOF
+          curl -sLo gradlew https://raw.githubusercontent.com/gradle/gradle/v8.9.0/gradlew
           chmod +x gradlew
 
       - name: Build Debug APK
