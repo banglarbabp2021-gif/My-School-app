@@ -21,20 +21,18 @@ jobs:
 
       - name: Force Correct Plugin Versions Everywhere
         run: |
-          # toml, gradle, kts সহ সব ফাইলে 9.1.1 বদলে 8.7.3 করা
           grep -rl '9\.1\.1' . | xargs sed -i 's/9\.1\.1/8.7.3/g' || true
-          # gradle.properties থেকে ক্যাশ বন্ধ করা
           echo "org.gradle.configuration-cache=false" >> gradle.properties
 
-      - name: Setup Gradle 8.7
+      - name: Setup Gradle 8.9
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.7'
+          gradle-version: '8.9'
           cache-disabled: true
 
       - name: Generate Wrapper
         run: |
-          gradle wrapper --gradle-version 8.7
+          gradle wrapper --gradle-version 8.9
           chmod +x gradlew
 
       - name: Build Debug APK
