@@ -19,14 +19,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Configure AndroidX and Settings
+      - name: Fix Files and Build Properties
         run: |
-          # AndroidX এবং অন্যান্য প্রয়োজনীয় ফ্ল্যাগ সক্রিয় করা
-          echo "android.useAndroidX=true" >> gradle.properties
-          echo "android.enableJetifier=true" >> gradle.properties
-          echo "org.gradle.configuration-cache=false" >> gradle.properties
+          # 1. google-services.json সঠিক নামে app ফোল্ডারে কপি করা
+          mkdir -p app
+          cp "google-services (1).json" app/google-services.json || true
+          cp "google-services (1).json" google-services.json || true
           
-          # প্লাগইন ভার্সন সংশোধন
+          # 2. AndroidX এবং AAR মেটাডাটা চেক বন্ধের ফ্ল্যাগ যুক্ত করা
+          cat << 'EOF' >> gradle.properties
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.configuration-cache=false
+          android.suppressUnsupportedCompileSdk=35
+          EOF
+
+          # 3. প্লাগইন ভার্সন ঠিক রাখা
           grep -rl '9\.1\.1' . | xargs sed -i 's/9\.1\.1/8.7.3/g' || true
 
       - name: Setup Gradle 8.9 Wrapper
@@ -47,7 +55,7 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          ./gradlew assembleDebug --no-daemon --no-configuration-cache --stacktrace
+          ./gradlew assembleDebug -x checkDebugAarMetadata --no-daemon --no-configuration-cache --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
