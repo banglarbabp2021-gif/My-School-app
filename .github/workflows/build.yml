@@ -19,7 +19,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
+      - name: Fix AGP and Plugin Versions
+        run: |
+          # ভুল 9.1.1 ভার্সন বদলে অফিসিয়াল স্টেবল 8.7.3 সেট করা
+          find . -type f \( -name "*.gradle.kts" -o -name "*.gradle" \) -exec sed -i 's/9\.1\.1/8.7.3/g' {} +
+
+      - name: Setup Gradle 8.7
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.7'
@@ -31,10 +36,7 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          ./gradlew assembleDebug --stacktrace --no-daemon \
-            -Dandroid.suppressUnsupportedCompileSdk=35 \
-            -Dandroid.injected.build.model.only.versioned=3 \
-            -Dorg.gradle.jvmargs="-Xmx4g"
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
