@@ -19,18 +19,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Fix SDK and Plugin Configuration
+      - name: Configure AndroidX and Settings
         run: |
-          # ভুল প্লাগইন ভার্সন সংশোধন
-          grep -rl '9\.1\.1' . | xargs sed -i 's/9\.1\.1/8.7.3/g' || true
-          
-          # সঠিক compileSdk ও targetSdk নিশ্চিত করা
-          find . -name "build.gradle.kts" -exec sed -i -E 's/compileSdk\(.*\)/compileSdk = 35/g' {} +
-          find . -name "build.gradle.kts" -exec sed -i -E 's/targetSdk\(.*\)/targetSdk = 35/g' {} +
-          find . -name "build.gradle.kts" -exec sed -i '/minorApiLevel/d' {} +
-          
-          # ক্যাশ বন্ধ রাখা
+          # AndroidX এবং অন্যান্য প্রয়োজনীয় ফ্ল্যাগ সক্রিয় করা
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
           echo "org.gradle.configuration-cache=false" >> gradle.properties
+          
+          # প্লাগইন ভার্সন সংশোধন
+          grep -rl '9\.1\.1' . | xargs sed -i 's/9\.1\.1/8.7.3/g' || true
 
       - name: Setup Gradle 8.9 Wrapper
         run: |
